@@ -107,8 +107,10 @@ export async function POST(request: Request) {
       ...chatHistory.map(m => ({ role: m.role, content: m.content }))
     ];
 
-    // Call LLM API
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Call LLM API via Emergent Integration Proxy
+    const INTEGRATION_PROXY_URL = process.env.INTEGRATION_PROXY_URL || 'https://integrations.emergentagent.com';
+    
+    const response = await fetch(`${INTEGRATION_PROXY_URL}/openai/v1/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
