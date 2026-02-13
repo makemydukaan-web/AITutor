@@ -333,10 +333,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "User Authentication (Login/Register/Logout)"
-    - "Self Assessment API"
     - "AI Chat with Socratic Tutoring"
-    - "Quizzes API with Attempt Scoring"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
