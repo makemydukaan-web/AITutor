@@ -185,7 +185,7 @@ backend:
 
   - task: "AI Chat with Socratic Tutoring"
     implemented: true
-    working: false
+    working: true
     file: "src/app/api/chat/route.ts"
     stuck_count: 0
     priority: "high"
@@ -197,6 +197,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "AI Chat API returns 500 error - likely due to invalid/missing OpenAI API key (EMERGENT_LLM_KEY). Chat sessions endpoint works correctly. This is expected in test environment without valid API key"
+      - working: true
+        agent: "main"
+        comment: "Fixed by obtaining fresh EMERGENT_LLM_KEY (sk-emergent-dD5B1Ea5b8401Eb8f1). Both Summary and Socratic modes tested and working perfectly. AI provides educational summaries in Summary mode and asks guiding questions in Socratic/Doubt mode as expected."
 
   - task: "Content Verification API"
     implemented: true
