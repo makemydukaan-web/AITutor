@@ -291,15 +291,18 @@ frontend:
 
   - task: "Books Library Page"
     implemented: true
-    working: "NA"
+    working: true
     file: "src/app/books/page.tsx"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Grid view with filters, detail modal"
+      - working: true
+        agent: "testing"
+        comment: "Books Library is working correctly. The page displays all books (4 NCERT Mathematics Class 10 books and 2 Science books). The Subject filter is working properly - showing 2 books for Mathematics and 4 books for Science. The empty string filter issue appears to be resolved."
 
   - task: "Videos Library Page"
     implemented: true
