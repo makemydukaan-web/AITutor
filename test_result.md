@@ -327,24 +327,46 @@ frontend:
 
 metadata:
   created_by: "main_agent"
-  version: "1.0"
-  test_sequence: 2
-  run_ui: false
+  version: "1.1"
+  test_sequence: 3
+  run_ui: true
 
 test_plan:
   current_focus:
-    - "AI Chat with Socratic Tutoring"
+    - "Frontend Login/Register with Dashboard Redirect"
+    - "AI Chat with Socratic Tutoring using EMERGENT_LLM_KEY"
+    - "All Frontend Pages and User Flows"
   stuck_tasks: []
-  test_all: false
+  test_all: true
   test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
     message: |
-      Completed full migration from React+FastAPI+MongoDB to Next.js 16 with SQLite.
-      All APIs implemented as Next.js API routes. Database seeded with sample content.
-      Test accounts: student@aitutor.com/student123, teacher@aitutor.com/teacher123, admin@aitutor.com/admin123
-      Please test backend APIs focusing on auth, self-assessment, chat, and quizzes.
+      Phase 3: Full Frontend Testing
+      
+      APPLICATION ARCHITECTURE:
+      - Next.js 16 frontend with SQLite database (better-sqlite3)
+      - All APIs implemented as Next.js API routes (not using FastAPI backend)
+      - Database seeded with test accounts and sample content
+      - EMERGENT_LLM_KEY configured in .env for AI chat functionality
+      
+      TEST ACCOUNTS:
+      - student@aitutor.com / student123
+      - teacher@aitutor.com / teacher123
+      - admin@aitutor.com / admin123
+      - content@aitutor.com / content123
+      
+      READY FOR TESTING:
+      1. Login/Register flow with redirect to dashboard
+      2. Dashboard with stats and quick actions
+      3. Self-assessment module
+      4. AI Chat with Socratic tutoring (EMERGENT_LLM_KEY enabled)
+      5. Books/Videos/Quizzes libraries
+      6. Admin content verification
+      7. Progress tracking
+      
+      Please test all frontend functionality including the login redirect to dashboard.
   - agent: "testing"
     message: |
       Backend API testing completed with 93.8% success rate (15/16 tests passed).
