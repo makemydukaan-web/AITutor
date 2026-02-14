@@ -512,3 +512,21 @@ agent_communication:
       
       CONCLUSION:
       No login redirect issues found. The application correctly handles authentication and redirects as expected.
+  - agent: "testing"
+    message: |
+      Edge Browser Cookie Security Fix Testing Results:
+      
+      ✅ ALL TESTS PASSED:
+      1. Login Flow: Successfully logged in with student@aitutor.com/student123
+      2. Authentication: Proper redirect to dashboard after login
+      3. Cookie Security: Token cookie exists with correct properties:
+         - HttpOnly: true
+         - SameSite: Lax
+         - Secure flag: false (correctly removed as required for Edge/HTTP)
+      4. No 401 Errors: No authentication errors detected in network requests
+      5. Session Persistence: Successfully remained logged in after page refresh
+      6. Navigation: Successfully navigated through dashboard without auth issues
+      7. Logout/Re-login: Successfully logged out and logged back in
+      
+      CONCLUSION:
+      The cookie security fix (removing the Secure flag) has resolved the Edge browser compatibility issue. The authentication flow now works correctly on HTTP/localhost with no 401 errors.
