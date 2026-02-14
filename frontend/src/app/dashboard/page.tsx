@@ -10,6 +10,8 @@ import { BookOpen, Video, Trophy, Clock, TrendingUp, Target, MessageSquare } fro
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
+import { apiGet } from '@/lib/api';
+
 interface DashboardStats {
   total_topics_studied: number;
   total_time_spent: number;
@@ -45,7 +47,7 @@ export default function DashboardPage() {
 
   const fetchStats = async () => {
     try {
-      const res = await fetch('/api/dashboard/stats');
+      const res = await apiGet('/api/dashboard/stats');
       if (res.ok) {
         const data = await res.json();
         setStats(data);
