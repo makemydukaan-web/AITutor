@@ -5,7 +5,7 @@ pages_build_output_dir = ".next"
 [[d1_databases]]
 binding = "DB"
 database_name = "ai-tutor-db"
-database_id = "YOUR_DATABASE_ID_HERE"  # Replace with your actual database ID from Step 4
+database_id = "0edaf415-3cb6-4d49-a8a0-b960bf76e055"  # Replace with your actual database ID from Step 4
 
 [env.production.vars]
 NEXT_PUBLIC_APP_URL = "https://ai-tutor.pages.dev"
