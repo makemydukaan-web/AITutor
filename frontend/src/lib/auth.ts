@@ -49,7 +49,7 @@ export async function getCurrentUser(): Promise<User | null> {
   const payload = verifyToken(token);
   if (!payload) return null;
   
-  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(payload.sub) as any;
+  const user = await env.DB.prepare('SELECT * FROM users WHERE email = ?').bind(email).first();
   if (!user) return null;
   
   return {
