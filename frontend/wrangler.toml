@@ -1,0 +1,16 @@
+name = "ai-tutor"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = ".next"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ai-tutor-db"
+database_id = "YOUR_DATABASE_ID_HERE"  # Replace with your actual database ID from Step 4
+
+[env.production.vars]
+NEXT_PUBLIC_APP_URL = "https://ai-tutor.pages.dev"
+INTEGRATION_PROXY_URL = "https://integrations.emergentagent.com"
+
+# Add these as secrets via Cloudflare dashboard
+# EMERGENT_LLM_KEY
+# JWT_SECRET
