@@ -11,6 +11,11 @@ database_id = "0edaf415-3cb6-4d49-a8a0-b960bf76e055"  # Replace with your actual
 NEXT_PUBLIC_APP_URL = "https://ai-tutor.pages.dev"
 INTEGRATION_PROXY_URL = "https://integrations.emergentagent.com"
 
+[env.production]
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "ai-tutor-db"
+database_id = "0edaf415-3cb6-4d49-a8a0-b960bf76e055"
 # Add these as secrets via Cloudflare dashboard
 # EMERGENT_LLM_KEY
 # JWT_SECRET
