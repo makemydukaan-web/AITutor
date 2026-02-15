@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 import db, { uuidv4 } from './db';
 
+
 const JWT_SECRET = process.env.JWT_SECRET || 'ai-tutor-secret-key-2024';
 
 export interface User {
