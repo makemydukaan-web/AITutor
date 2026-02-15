@@ -127,7 +127,21 @@ export async function POST(request: Request) {
     if (!response.ok) {
       const errorData = await response.text();
       console.error('LLM API error:', errorData);
-      throw new Error('Failed to get AI response');
+      
+      // Parse error to provide better user feedback
+      let errorMessage = 'Failed to get AI response';
+      try {
+        const errorJson = JSON.parse(errorData);
+        if (errorJson.error?.message?.includes('Budget has been exceeded')) {
+          errorMessage = 'API credits exhausted. Please add your OpenAI API key to continue.';
+        } else if (errorJson.error?.message?.includes('Invalid API key')) {
+          errorMessage = 'Invalid API key. Please configure a valid OpenAI API key.';
+        }
+      } catch (e) {
+        // Use default error message
+      }
+      
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
