@@ -2,7 +2,6 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 import db, { uuidv4 } from './db';
-import { getRequestContext } from '@cloudflare/next-on-pages';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'ai-tutor-secret-key-2024';
 
@@ -51,9 +50,7 @@ export async function getCurrentUser(): Promise<User | null> {
   if (!payload) return null;
 
     // Access the environment bindings from the request context
-  const { env } = getRequestContext();
-  
-  const user = await env.DB.prepare('SELECT * FROM users WHERE email = ?').bind(email).first();
+  const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
   if (!user) return null;
   
   return {
