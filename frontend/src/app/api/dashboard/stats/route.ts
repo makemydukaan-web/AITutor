@@ -1,7 +1,7 @@
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth-edge';
-
+import { executeQueryAll } from '@/lib/db-edge';
 
 export async function GET() {
   try {
@@ -11,19 +11,22 @@ export async function GET() {
     }
 
     // Get progress data
-    const progress = db.prepare(`
-      SELECT * FROM topic_progress WHERE user_id = ?
-    `).all(user.id) as any[];
+    const progress = await executeQueryAll<any>(
+      'SELECT * FROM topic_progress WHERE user_id = ?',
+      [user.id]
+    );
 
     // Get quiz attempts
-    const quizAttempts = db.prepare(`
-      SELECT * FROM quiz_attempts WHERE user_id = ?
-    `).all(user.id) as any[];
+    const quizAttempts = await executeQueryAll<any>(
+      'SELECT * FROM quiz_attempts WHERE user_id = ?',
+      [user.id]
+    );
 
     // Get self assessments
-    const assessments = db.prepare(`
-      SELECT * FROM self_assessments WHERE user_id = ?
-    `).all(user.id) as any[];
+    const assessments = await executeQueryAll<any>(
+      'SELECT * FROM self_assessments WHERE user_id = ?',
+      [user.id]
+    );
 
     // Calculate stats
     const totalTopics = progress.length;

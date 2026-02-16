@@ -1,6 +1,6 @@
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
-
+import { executeQueryAll } from '@/lib/db-edge';
 
 export async function GET(request: Request) {
   try {
@@ -20,7 +20,7 @@ export async function GET(request: Request) {
       params.push(parseInt(classLevel));
     }
 
-    const subjects = db.prepare(query).all(...params) as { subject: string }[];
+    const subjects = await executeQueryAll<{ subject: string }>(query, params);
 
     return NextResponse.json({ 
       subjects: subjects.map(s => s.subject).sort() 
