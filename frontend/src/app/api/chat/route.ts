@@ -1,7 +1,7 @@
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth-edge';
-
+import { executeQuery, executeQueryAll, executeMutation, uuidv4 } from '@/lib/db-edge';
 
 const EMERGENT_LLM_KEY = process.env.EMERGENT_LLM_KEY;
 
@@ -58,35 +58,32 @@ export async function POST(request: Request) {
     let sessionId = session_id;
     if (!sessionId) {
       sessionId = uuidv4();
-      db.prepare(`
-        INSERT INTO chat_sessions (id, user_id, subject, topic, context_type)
-        VALUES (?, ?, ?, ?, ?)
-      `).run(sessionId, user.id, subject || null, topic || null, context_type || 'doubt');
+      await executeMutation(
+        'INSERT INTO chat_sessions (id, user_id, subject, topic, context_type) VALUES (?, ?, ?, ?, ?)',
+        [sessionId, user.id, subject || null, topic || null, context_type || 'doubt']
+      );
     }
 
     // Save user message
     const userMsgId = uuidv4();
-    db.prepare(`
-      INSERT INTO chat_messages (id, session_id, role, content)
-      VALUES (?, ?, ?, ?)
-    `).run(userMsgId, sessionId, 'user', message);
+    await executeMutation(
+      'INSERT INTO chat_messages (id, session_id, role, content) VALUES (?, ?, ?, ?)',
+      [userMsgId, sessionId, 'user', message]
+    );
 
     // Get chat history for context
-    const chatHistory = db.prepare(`
-      SELECT role, content FROM chat_messages 
-      WHERE session_id = ? 
-      ORDER BY created_at ASC
-      LIMIT 20
-    `).all(sessionId) as { role: string; content: string }[];
+    const chatHistory = await executeQueryAll<{ role: string; content: string }>(
+      'SELECT role, content FROM chat_messages WHERE session_id = ? ORDER BY created_at ASC LIMIT 20',
+      [sessionId]
+    );
 
     // Get student's self-assessment for this subject/topic if available
     let studentLevel = 'intermediate';
     if (subject) {
-      const assessment = db.prepare(`
-        SELECT level FROM self_assessments 
-        WHERE user_id = ? AND subject = ?
-        LIMIT 1
-      `).get(user.id, subject) as { level: string } | undefined;
+      const assessment = await executeQuery<{ level: string }>(
+        'SELECT level FROM self_assessments WHERE user_id = ? AND subject = ? LIMIT 1',
+        [user.id, subject]
+      );
       if (assessment) {
         studentLevel = assessment.level;
       }
@@ -96,7 +93,7 @@ export async function POST(request: Request) {
     let systemMessage = context_type === 'summary' ? SUMMARY_SYSTEM_PROMPT : SOCRATIC_SYSTEM_PROMPT;
     
     // Add student context
-    systemMessage += `\n\nStudent Context:\n- Name: ${user.full_name}\n- Knowledge Level: ${studentLevel}`;
+    systemMessage += `\n\nStudent Context:\n- Name: ${user.email}\n- Knowledge Level: ${studentLevel}`;
     if (subject) systemMessage += `\n- Subject: ${subject}`;
     if (topic) systemMessage += `\n- Topic: ${topic}`;
 
@@ -148,24 +145,25 @@ export async function POST(request: Request) {
 
     // Save AI response
     const aiMsgId = uuidv4();
-    db.prepare(`
-      INSERT INTO chat_messages (id, session_id, role, content)
-      VALUES (?, ?, ?, ?)
-    `).run(aiMsgId, sessionId, 'assistant', aiResponse);
+    await executeMutation(
+      'INSERT INTO chat_messages (id, session_id, role, content) VALUES (?, ?, ?, ?)',
+      [aiMsgId, sessionId, 'assistant', aiResponse]
+    );
 
     // Update session timestamp
-    db.prepare(`
-      UPDATE chat_sessions SET updated_at = ? WHERE id = ?
-    `).run(new Date().toISOString(), sessionId);
+    await executeMutation(
+      'UPDATE chat_sessions SET updated_at = ? WHERE id = ?',
+      [new Date().toISOString(), sessionId]
+    );
 
     return NextResponse.json({
-      response: aiResponse,
-      session_id: sessionId
+      session_id: sessionId,
+      message: aiResponse
     });
   } catch (error) {
     console.error('Chat error:', error);
     return NextResponse.json(
-      { error: 'Failed to process chat message' },
+      { error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
     );
   }

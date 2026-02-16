@@ -1,7 +1,7 @@
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth-edge';
-
+import { executeQuery, executeQueryAll } from '@/lib/db-edge';
 
 export async function GET(
   request: Request,
@@ -15,17 +15,19 @@ export async function GET(
 
     const { id } = await params;
 
-    const session = db.prepare(`
-      SELECT * FROM chat_sessions WHERE id = ? AND user_id = ?
-    `).get(id, user.id);
+    const session = await executeQuery(
+      'SELECT * FROM chat_sessions WHERE id = ? AND user_id = ?',
+      [id, user.id]
+    );
 
     if (!session) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
     }
 
-    const messages = db.prepare(`
-      SELECT * FROM chat_messages WHERE session_id = ? ORDER BY created_at ASC
-    `).all(id);
+    const messages = await executeQueryAll(
+      'SELECT * FROM chat_messages WHERE session_id = ? ORDER BY created_at ASC',
+      [id]
+    );
 
     return NextResponse.json({ session, messages });
   } catch (error) {
