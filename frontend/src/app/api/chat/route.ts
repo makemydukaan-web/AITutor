@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import db, { initializeDatabase, uuidv4 } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
