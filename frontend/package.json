@@ -47,5 +47,8 @@
     "lightningcss": "^1.31.1",
     "tailwindcss": "^4.1.7",
     "typescript": "^5.8.3"
+  },
+  "optionalDependencies": {
+    "lightningcss-linux-x64-gnu": "^1.31.1"
   }
 }
