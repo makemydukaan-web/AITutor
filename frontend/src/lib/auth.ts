@@ -50,13 +50,22 @@ export async function getCurrentUser(): Promise<User | null> {
   const payload = verifyToken(token);
   if (!payload) return null;
 
-  // Try D1 syntax for Cloudflare Pages, fall back to better-sqlite3 for local dev
+  // For D1 (Cloudflare Pages): Use .bind().first()
+  // For better-sqlite3 (local): Use .get()
+  // TypeScript doesn't know about D1 methods, so we cast to any
+  const dbAny = db as any;
   let user: any;
+  
   try {
-    // D1 syntax (async)
-    user = await db.prepare('SELECT * FROM users WHERE email = ?').bind(payload.email).first();
+    // Try D1 async syntax first
+    if (dbAny.prepare && typeof dbAny.prepare('SELECT 1').bind === 'function') {
+      user = await dbAny.prepare('SELECT * FROM users WHERE email = ?').bind(payload.email).first();
+    } else {
+      // Fall back to better-sqlite3 sync syntax
+      user = db.prepare('SELECT * FROM users WHERE email = ?').get(payload.email);
+    }
   } catch (e) {
-    // better-sqlite3 syntax (sync)
+    // If async D1 fails, try sync better-sqlite3
     user = db.prepare('SELECT * FROM users WHERE email = ?').get(payload.email);
   }
   
