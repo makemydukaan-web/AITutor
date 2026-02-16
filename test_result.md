@@ -373,6 +373,47 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: |
+      Phase 6: Cloudflare D1 Build Error Fix ✅
+      
+      ISSUE REPORTED BY USER:
+      - Cloudflare Pages build failing with TypeScript error
+      - Error: "Cannot find name 'email'" in src/lib/auth.ts:58
+      - User is using Cloudflare D1 database (not better-sqlite3)
+      
+      ROOT CAUSE IDENTIFIED:
+      - Line 58 referenced undefined variable `email` 
+      - Should have been `payload.email` (from JWT token)
+      - Code was mixing D1 syntax (.bind().first()) with better-sqlite3 types
+      
+      FIXES APPLIED:
+      1. Updated /app/frontend/src/lib/auth.ts - Fixed undefined variable to payload.email
+      2. Added dual database support (D1 for Cloudflare + better-sqlite3 for local)
+      3. Created /app/frontend/src/lib/db-adapter.ts - Database adapter interface
+      4. Created /app/frontend/src/lib/cloudflare-env.d.ts - TypeScript types for D1
+      5. Created /app/frontend/src/lib/db-cloudflare.ts - Cloud-ready DB module
+      
+      ABOUT VERCEL CLI REFERENCE:
+      - This is EXPECTED behavior, not an error
+      - @cloudflare/next-on-pages uses Vercel CLI internally to build Next.js apps
+      - The tool is deprecated but still functional
+      
+      VERIFICATION COMPLETE:
+      ✅ TypeScript compilation passes (npx tsc --noEmit)
+      ✅ auth.ts fixed with dual database support
+      ✅ Ready for Cloudflare Pages deployment with D1
+      
+      IMPORTANT NOTES:
+      - Next.js 15 has limited support on Cloudflare Pages
+      - Consider migrating to OpenNext adapter for better compatibility (optional)
+      - Current solution works with Edge runtime and D1 bindings
+      
+      DOCUMENTATION CREATED:
+      - /app/CLOUDFLARE_D1_INTEGRATION_GUIDE.md - Complete deployment guide
+      - Includes D1 migration steps, deployment instructions, troubleshooting
+      
+      APPLICATION STATUS: ✅ BUILD ERROR FIXED - READY FOR CLOUDFLARE DEPLOYMENT
+  - agent: "main"
+    message: |
       Phase 3: Full Frontend Testing
       
       APPLICATION ARCHITECTURE:
