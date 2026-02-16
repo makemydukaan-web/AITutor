@@ -1,18 +1,19 @@
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth-edge';
+import { executeQueryAll, executeQuery, executeMutation, uuidv4 } from '@/lib/db-edge';
 
-
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const assessments = db.prepare(`
-      SELECT * FROM self_assessments WHERE user_id = ?
-    `).all(user.id);
+    const assessments = await executeQueryAll(
+      'SELECT * FROM self_assessments WHERE user_id = ?',
+      [user.id]
+    );
 
     return NextResponse.json({ assessments });
   } catch (error) {
@@ -46,20 +47,22 @@ export async function POST(request: Request) {
     }
 
     // Upsert assessment
-    const existing = db.prepare(`
-      SELECT id FROM self_assessments WHERE user_id = ? AND subject = ? AND topic = ?
-    `).get(user.id, subject, topic) as { id: string } | undefined;
+    const existing = await executeQuery<{ id: string }>(
+      'SELECT id FROM self_assessments WHERE user_id = ? AND subject = ? AND topic = ?',
+      [user.id, subject, topic]
+    );
 
     if (existing) {
-      db.prepare(`
-        UPDATE self_assessments SET level = ?, updated_at = ? WHERE id = ?
-      `).run(level, new Date().toISOString(), existing.id);
+      await executeMutation(
+        'UPDATE self_assessments SET level = ?, updated_at = ? WHERE id = ?',
+        [level, new Date().toISOString(), existing.id]
+      );
     } else {
       const id = uuidv4();
-      db.prepare(`
-        INSERT INTO self_assessments (id, user_id, subject, topic, level)
-        VALUES (?, ?, ?, ?, ?)
-      `).run(id, user.id, subject, topic, level);
+      await executeMutation(
+        'INSERT INTO self_assessments (id, user_id, subject, topic, level) VALUES (?, ?, ?, ?, ?)',
+        [id, user.id, subject, topic, level]
+      );
     }
 
     return NextResponse.json({ message: 'Assessment saved successfully' });
