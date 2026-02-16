@@ -2,35 +2,46 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // Cloudflare Pages with @cloudflare/next-on-pages
-  serverExternalPackages: ['bcryptjs', 'better-sqlite3'],
+  serverExternalPackages: ['bcryptjs', 'better-sqlite3', 'bindings'],
   
   // Webpack configuration to handle Node.js modules in Edge Runtime
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      // Externalize Node.js modules that can't run in Edge Runtime
+  webpack: (config, { isServer, nextRuntime }) => {
+    // For Edge Runtime, completely replace Node.js modules with empty mocks
+    if (nextRuntime === 'edge') {
+      config.resolve = config.resolve || {};
+      config.resolve.alias = config.resolve.alias || {};
+      config.resolve.fallback = config.resolve.fallback || {};
+      
+      // Replace Node.js built-ins with empty modules for Edge Runtime
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        crypto: false,
+        stream: false,
+        util: false,
+        buffer: false,
+        process: false,
+      };
+      
+      // Ignore better-sqlite3 and other native modules in Edge Runtime
       config.externals = config.externals || [];
-      config.externals.push({
-        'better-sqlite3': 'commonjs better-sqlite3',
-        'fs': 'commonjs fs',
-        'path': 'commonjs path',
-        'crypto': 'commonjs crypto',
-      });
+      if (Array.isArray(config.externals)) {
+        config.externals.push('better-sqlite3', 'bcryptjs', 'jsonwebtoken', 'bindings');
+      }
     }
+    
     return config;
   },
   
   // Allow build to succeed with ESLint warnings
   eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
   
-  // Allow build to succeed with TypeScript errors (if any)
+  // TypeScript configuration
   typescript: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has type errors.
-    ignoreBuildErrors: false, // Keep this false since we fixed TS errors
+    ignoreBuildErrors: false,
   },
 };
 
