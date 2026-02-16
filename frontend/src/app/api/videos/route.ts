@@ -1,7 +1,7 @@
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth-edge';
-
+import { executeQueryAll } from '@/lib/db-edge';
 
 export async function GET(request: Request) {
   try {
@@ -50,45 +50,11 @@ export async function GET(request: Request) {
 
     query += ' ORDER BY created_at DESC';
 
-    const videos = db.prepare(query).all(...params);
+    const videos = await executeQueryAll(query, params);
 
     return NextResponse.json({ videos });
   } catch (error) {
     console.error('Get videos error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
-
-export async function POST(request: Request) {
-  try {
-    const user = await getCurrentUser();
-    if (!user || !['admin', 'teacher', 'content_team'].includes(user.role)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-    }
-
-    const body = await request.json();
-    const { title, teacher_name, stream, class_level, subject, topic, video_url, duration, difficulty, description, tags } = body;
-
-    if (!title || !teacher_name || !stream || !class_level || !subject || !topic || !difficulty) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
-
-    const id = uuidv4();
-    const status = user.role === 'admin' ? 'approved' : 'pending';
-
-    db.prepare(`
-      INSERT INTO videos (id, title, teacher_name, stream, class_level, subject, topic, video_url, duration, difficulty, description, tags, uploaded_by, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(id, title, teacher_name, stream, class_level, subject, topic, video_url || null, duration || null, difficulty, description || null, tags || null, user.id, status);
-
-    const video = db.prepare('SELECT * FROM videos WHERE id = ?').get(id);
-
-    return NextResponse.json({ video });
-  } catch (error) {
-    console.error('Create video error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

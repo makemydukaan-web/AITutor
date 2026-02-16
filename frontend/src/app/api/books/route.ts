@@ -1,7 +1,7 @@
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth-edge';
-
+import { executeQueryAll } from '@/lib/db-edge';
 
 export async function GET(request: Request) {
   try {
@@ -45,45 +45,11 @@ export async function GET(request: Request) {
 
     query += ' ORDER BY created_at DESC';
 
-    const books = db.prepare(query).all(...params);
+    const books = await executeQueryAll(query, params);
 
     return NextResponse.json({ books });
   } catch (error) {
     console.error('Get books error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
-
-export async function POST(request: Request) {
-  try {
-    const user = await getCurrentUser();
-    if (!user || !['admin', 'teacher', 'content_team'].includes(user.role)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-    }
-
-    const body = await request.json();
-    const { title, author, stream, class_level, subject, topic, summary, content_url, tags } = body;
-
-    if (!title || !author || !stream || !class_level || !subject || !topic) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
-
-    const id = uuidv4();
-    const status = user.role === 'admin' ? 'approved' : 'pending';
-
-    db.prepare(`
-      INSERT INTO books (id, title, author, stream, class_level, subject, topic, summary, content_url, tags, uploaded_by, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(id, title, author, stream, class_level, subject, topic, summary || null, content_url || null, tags || null, user.id, status);
-
-    const book = db.prepare('SELECT * FROM books WHERE id = ?').get(id);
-
-    return NextResponse.json({ book });
-  } catch (error) {
-    console.error('Create book error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
