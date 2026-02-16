@@ -1,7 +1,7 @@
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth-edge';
-
+import { executeQueryAll, executeMutation, uuidv4 } from '@/lib/db-edge';
 
 // Get pending content for verification
 export async function GET(request: Request) {
@@ -18,33 +18,24 @@ export async function GET(request: Request) {
     const result: any = {};
 
     if (contentType === 'all' || contentType === 'books') {
-      result.books = db.prepare(`
-        SELECT b.*, u.full_name as uploader_name 
-        FROM books b 
-        LEFT JOIN users u ON b.uploaded_by = u.id 
-        WHERE b.status = ?
-        ORDER BY b.created_at DESC
-      `).all(status);
+      result.books = await executeQueryAll(
+        'SELECT b.*, u.full_name as uploader_name FROM books b LEFT JOIN users u ON b.uploaded_by = u.id WHERE b.status = ? ORDER BY b.created_at DESC',
+        [status]
+      );
     }
 
     if (contentType === 'all' || contentType === 'videos') {
-      result.videos = db.prepare(`
-        SELECT v.*, u.full_name as uploader_name 
-        FROM videos v 
-        LEFT JOIN users u ON v.uploaded_by = u.id 
-        WHERE v.status = ?
-        ORDER BY v.created_at DESC
-      `).all(status);
+      result.videos = await executeQueryAll(
+        'SELECT v.*, u.full_name as uploader_name FROM videos v LEFT JOIN users u ON v.uploaded_by = u.id WHERE v.status = ? ORDER BY v.created_at DESC',
+        [status]
+      );
     }
 
     if (contentType === 'all' || contentType === 'quizzes') {
-      const quizzes = db.prepare(`
-        SELECT q.*, u.full_name as creator_name 
-        FROM quizzes q 
-        LEFT JOIN users u ON q.created_by = u.id 
-        WHERE q.status = ?
-        ORDER BY q.created_at DESC
-      `).all(status) as any[];
+      const quizzes = await executeQueryAll<any>(
+        'SELECT q.*, u.full_name as creator_name FROM quizzes q LEFT JOIN users u ON q.created_by = u.id WHERE q.status = ? ORDER BY q.created_at DESC',
+        [status]
+      );
 
       result.quizzes = quizzes.map(q => ({
         ...q,
@@ -91,17 +82,16 @@ export async function POST(request: Request) {
                       action === 'reject' ? 'rejected' : 'changes_requested';
 
     // Update content status
-    db.prepare(`
-      UPDATE ${tableName} 
-      SET status = ?, verified_by = ?, verified_at = ?
-      WHERE id = ?
-    `).run(newStatus, user.id, new Date().toISOString(), content_id);
+    await executeMutation(
+      `UPDATE ${tableName} SET status = ?, verified_by = ?, verified_at = ? WHERE id = ?`,
+      [newStatus, user.id, new Date().toISOString(), content_id]
+    );
 
     // Log verification history
-    db.prepare(`
-      INSERT INTO verification_history (id, content_type, content_id, action, verified_by, comments)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `).run(uuidv4(), content_type, content_id, action, user.id, comments || null);
+    await executeMutation(
+      'INSERT INTO verification_history (id, content_type, content_id, action, verified_by, comments) VALUES (?, ?, ?, ?, ?, ?)',
+      [uuidv4(), content_type, content_id, action, user.id, comments || null]
+    );
 
     return NextResponse.json({ 
       message: `Content ${action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : 'marked for changes'} successfully` 
