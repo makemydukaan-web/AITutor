@@ -2,7 +2,22 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // Cloudflare Pages with @cloudflare/next-on-pages
-  serverExternalPackages: ['bcryptjs'],
+  serverExternalPackages: ['bcryptjs', 'better-sqlite3'],
+  
+  // Webpack configuration to handle Node.js modules in Edge Runtime
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Externalize Node.js modules that can't run in Edge Runtime
+      config.externals = config.externals || [];
+      config.externals.push({
+        'better-sqlite3': 'commonjs better-sqlite3',
+        'fs': 'commonjs fs',
+        'path': 'commonjs path',
+        'crypto': 'commonjs crypto',
+      });
+    }
+    return config;
+  },
   
   // Allow build to succeed with ESLint warnings
   eslint: {
