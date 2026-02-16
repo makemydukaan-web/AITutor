@@ -50,13 +50,7 @@ export async function getCurrentUser(): Promise<User | null> {
   const payload = verifyToken(token);
   if (!payload) return null;
 
-    // Access the environment bindings from the request context
-  //const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
-
-  const user = await db
-    .prepare('SELECT * FROM users WHERE email = ?')
-    .bind(payload.email)
-    .first();
+  const user = db.prepare('SELECT * FROM users WHERE email = ?').get(payload.email) as any;
   
   if (!user) return null;
   
