@@ -21,7 +21,7 @@ export { uuidv4 };
 
 // Helper to get DB from platform context in API routes
 export function getDBFromContext(request: Request): D1Database {
-  // @ts-ignore - Cloudflare Pages provides this
+  // @ts-expect-error - Cloudflare Pages provides this at runtime
   return request.env?.DB || globalThis.DB;
 }
 
