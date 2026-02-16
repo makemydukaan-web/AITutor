@@ -50,7 +50,15 @@ export async function getCurrentUser(): Promise<User | null> {
   const payload = verifyToken(token);
   if (!payload) return null;
 
-  const user = db.prepare('SELECT * FROM users WHERE email = ?').get(payload.email) as any;
+  // Try D1 syntax for Cloudflare Pages, fall back to better-sqlite3 for local dev
+  let user: any;
+  try {
+    // D1 syntax (async)
+    user = await db.prepare('SELECT * FROM users WHERE email = ?').bind(payload.email).first();
+  } catch (e) {
+    // better-sqlite3 syntax (sync)
+    user = db.prepare('SELECT * FROM users WHERE email = ?').get(payload.email);
+  }
   
   if (!user) return null;
   
