@@ -55,7 +55,7 @@ export async function getCurrentUser(): Promise<User | null> {
 
   const user = await db
     .prepare('SELECT * FROM users WHERE email = ?')
-    .bind(email)
+    .bind(payload.email)
     .first();
   
   if (!user) return null;
