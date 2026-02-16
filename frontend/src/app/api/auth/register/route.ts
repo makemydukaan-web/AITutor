@@ -1,9 +1,8 @@
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
-import db, { initializeDatabase, uuidv4 } from '@/lib/db';
-import { hashPassword, createToken, User } from '@/lib/auth';
+import db, { initializeDatabase, uuidv4 } from '@/lib/db-edge';
+import { hashPassword, createToken, User } from '@/lib/auth-edge';
 
-initializeDatabase();
 
 export async function POST(request: Request) {
   try {

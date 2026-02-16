@@ -1,8 +1,7 @@
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
-import db, { initializeDatabase } from '@/lib/db';
+import db, { initializeDatabase } from '@/lib/db-edge';
 
-initializeDatabase();
 
 export async function GET(request: Request) {
   try {
