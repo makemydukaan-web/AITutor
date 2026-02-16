@@ -1,7 +1,7 @@
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth-edge';
-
+import { executeQueryAll, executeQuery, executeMutation, uuidv4 } from '@/lib/db-edge';
 
 export async function GET(request: Request) {
   try {
@@ -39,7 +39,7 @@ export async function GET(request: Request) {
 
     query += ' ORDER BY created_at DESC';
 
-    const quizzes = db.prepare(query).all(...params) as any[];
+    const quizzes = await executeQueryAll<any>(query, params);
 
     // Parse questions JSON
     const parsedQuizzes = quizzes.map(quiz => ({
@@ -74,17 +74,17 @@ export async function POST(request: Request) {
     const id = uuidv4();
     const status = user.role === 'admin' ? 'approved' : 'pending';
 
-    db.prepare(`
-      INSERT INTO quizzes (id, title, stream, class_level, subject, topic, difficulty, questions, created_by, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(id, title, stream, class_level, subject, topic, difficulty, JSON.stringify(questions), user.id, status);
+    await executeMutation(
+      'INSERT INTO quizzes (id, title, stream, class_level, subject, topic, difficulty, questions, created_by, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [id, title, stream, class_level, subject, topic, difficulty, JSON.stringify(questions), user.id, status]
+    );
 
-    const quiz = db.prepare('SELECT * FROM quizzes WHERE id = ?').get(id) as any;
+    const quiz = await executeQuery<any>('SELECT * FROM quizzes WHERE id = ?', [id]);
 
     return NextResponse.json({ 
       quiz: {
         ...quiz,
-        questions: JSON.parse(quiz.questions)
+        questions: JSON.parse(quiz!.questions)
       }
     });
   } catch (error) {
