@@ -82,22 +82,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       credentials: 'include'
     });
 
-  const responseData = await res.json();
-
-  if (!res.ok) {
-    throw new Error(responseData.error || 'Registration failed');
-  }
-
-  setUser(responseData.user);
-};
-
+    const responseData = await res.json();
 
     if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.error || 'Registration failed');
+      throw new Error(responseData.error || 'Registration failed');
     }
 
-    const responseData = await res.json();
     setUser(responseData.user);
   };
 
