@@ -40,63 +40,72 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkAuth();
   }, []);
 
-  const checkAuth = async () => {
-    try {
-        const res = await serverFetch('/api/auth/me', {
-          method: 'GET',
-          credentials: 'include'
-        });
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data.user);
-      }
-    } catch (error) {
-      console.error('Auth check failed:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+const checkAuth = async () => {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE}/api/auth/me`,
+      { credentials: "include" }
+    );
 
-  const login = async (email: string, password: string) => {
-    const res = await serverFetch('/api/auth/login', {
-      method: 'POST',
+    if (res.ok) {
+      const data = await res.json();
+      setUser(data.user);
+    }
+  } catch (error) {
+    console.error("Auth check failed:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+const login = async (email: string, password: string) => {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_BASE}/api/auth/login`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
-      credentials: 'include'
-    });
-  
-    const data = await res.json();
-  
-    if (!res.ok) {
-      throw new Error(data.error || 'Login failed');
+      credentials: "include",
     }
-  
-    setUser(data.user);
-  };
+  );
+
+  const data = await res.json();
+
+  if (!res.ok) throw new Error(data.error || "Login failed");
+
+  setUser(data.user);
+};
 
 
-  const register = async (data: RegisterData) => {
-    const res = await serverFetch('/api/auth/register', {
-      method: 'POST',
+
+const register = async (data: RegisterData) => {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_BASE}/api/auth/register`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
-      credentials: 'include'
-    });
-
-    const responseData = await res.json();
-
-    if (!res.ok) {
-      throw new Error(responseData.error || 'Registration failed');
+      credentials: "include",
     }
+  );
 
-    setUser(responseData.user);
-  };
+  const responseData = await res.json();
 
-  const logout = async () => {
-    await serverFetch('/api/auth/logout', {
-      method: 'POST',
-      credentials: 'include'
-    });
-    setUser(null);
-  };
+  if (!res.ok) throw new Error(responseData.error || "Registration failed");
+
+  setUser(responseData.user);
+};
+
+
+const logout = async () => {
+  await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/auth/logout`, {
+    method: "POST",
+    credentials: "include",
+  });
+
+  setUser(null);
+};
+
 
   return (
     <AuthContext.Provider
