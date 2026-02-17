@@ -1,7 +1,6 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { serverFetch } from "@/lib/serverFetch";
 
 interface User {
   id: string;
