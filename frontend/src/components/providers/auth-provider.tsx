@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { serverFetch } from "@/lib/serverFetch";
 
 interface User {
   id: string;
@@ -42,9 +43,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async () => {
     try {
-      const res = await fetch('/api/auth/me', {
-        credentials: 'include'
-      });
+        const res = await serverFetch('/api/auth/me', {
+          method: 'GET',
+          credentials: 'include'
+        });
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
@@ -57,29 +59,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
-    const res = await fetch('/api/auth/login', {
+    const res = await serverFetch('/api/auth/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
       credentials: 'include'
     });
-
+  
+    const data = await res.json();
+  
     if (!res.ok) {
-      const data = await res.json();
       throw new Error(data.error || 'Login failed');
     }
-
-    const data = await res.json();
+  
     setUser(data.user);
   };
 
+
   const register = async (data: RegisterData) => {
-    const res = await fetch('/api/auth/register', {
+    const res = await serverFetch('/api/auth/register', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
       credentials: 'include'
     });
+
+  const responseData = await res.json();
+
+  if (!res.ok) {
+    throw new Error(responseData.error || 'Registration failed');
+  }
+
+  setUser(responseData.user);
+};
+
 
     if (!res.ok) {
       const errorData = await res.json();
@@ -91,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    await fetch('/api/auth/logout', { 
+    await serverFetch('/api/auth/logout', {
       method: 'POST',
       credentials: 'include'
     });
