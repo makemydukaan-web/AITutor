@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 
-import registerRoutes from "./routes/auth/register.ts";
+import registerRoute from "./routes/auth/register";
 
 const app = express();
 app.use(cors());
