@@ -4,7 +4,17 @@ import cors from "cors";
 import registerRoute from "./routes/auth/register.ts";
 
 const app = express();
-app.use(cors());
+
+
+app.use(
+  cors({
+    origin: "https://aitutor-9cw.pages.dev", // your Cloudflare frontend
+    credentials: true,                       // allow cookies
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+  })
+);
+
 app.use(express.json());
 
 app.use("/auth", registerRoute);
