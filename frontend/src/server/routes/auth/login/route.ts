@@ -57,13 +57,14 @@ export async function POST(request: Request) {
       token
     });
 
-    response.cookies.set('token', token, {
+    response.cookies.set("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: '/'
+      secure: true,          // MUST be true in production
+      sameSite: "none",      // ⭐ THE REAL FIX
+      maxAge: 60 * 60 * 24 * 7,
+      path: "/",
     });
+
 
     return response;
   } catch (error) {
